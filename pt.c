@@ -10,23 +10,21 @@
 
 
 void page_table_update(uint64_t pt,uint64_t vpn, uint64_t ppn){
-    uint64_t *Vpt = (uint64_t *)phys_to_virt(pt<<12);
+    uint64_t *Vpt = (uint64_t *)phys_to_virt(pt<<12); /*pt is only ppn so I make it a whole address*/
     
     uint64_t i=0, curInd,mask = 0x1ff;
-    mask <<= (36); /*Now mask is 9 1's followed by 36 0's*/
+    mask <<= 36; /*Now mask is 9 1's followed by 36 0's*/
     
     while(i<5){
         curInd = (vpn & mask) >> (9*(4-i)); /*Select relevant bits for this pt layer*/
         
-        if(i==4){ /*Lat pt layer*/
+        if(i==4){ /*Last pt layer*/
             switch(ppn){
-                case NO_MAPPING:
+                case NO_MAPPING: /*"Deletion" of allocated frame*/
                     Vpt[curInd] &= 0xfffffffffffffffe; /*Mark PTE invalid by zeroing out lsb*/
                     return;
-                default: /*Need to add ppn to PTE*/
-                    Vpt[curInd] = ppn;
-                    Vpt[curInd] <<= 12;
-                    Vpt[curInd] |= 1; /*Mark PTE valid*/
+                default: /*Insertion of frame into PT*/
+                    Vpt[curInd] = ((ppn)<<12) | 1; /*Insert ppn into right spot and mark it valid*/
                     return;
             }
         }
@@ -48,10 +46,10 @@ void page_table_update(uint64_t pt,uint64_t vpn, uint64_t ppn){
 }
 
 uint64_t page_table_query(uint64_t pt, uint64_t vpn){
-    uint64_t *Vpt = (uint64_t *)phys_to_virt(pt<<12);
+    uint64_t *Vpt = (uint64_t *)phys_to_virt(pt<<12); /*pt is only ppn so I make it a whole address*/
 
     uint64_t i=0, curInd,mask = 0x1ff;
-    mask <<= (36); /*Now mask is 9 1's followed by 36 0's*/
+    mask <<= 36; /*Now mask is 9 1's followed by 36 0's*/
     
     while(i<5){
         curInd = (vpn & mask) >> (9*(4-i)); /*Select relevant bits for this pt layer*/

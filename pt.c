@@ -44,7 +44,7 @@ void page_table_update(uint64_t pt,uint64_t vpn, uint64_t ppn){
         }
 
 
-        Vpt = (uint64_t *)phys_to_virt(Vpt[curInd]); /*Go a layer down in pt*/
+        Vpt = (uint64_t *)phys_to_virt(Vpt[curInd] & ALL_BUT_LSB); /*Go a layer down in pt*/
         mask >>= 9; /*Shift mask to "mask" the next level's bits*/
         i++;
     }
@@ -67,7 +67,7 @@ uint64_t page_table_query(uint64_t pt, uint64_t vpn){
             return (Vpt[curInd] & FORTYFIVE_BITS) >> OFFSET_SIZE; /*If we got here, frame is valid so no need to check*/
         }
 
-        Vpt = (uint64_t *)phys_to_virt(Vpt[curInd]); /*Go a layer down in pt*/
+        Vpt = (uint64_t *)phys_to_virt(Vpt[curInd] & ALL_BUT_LSB); /*Go a layer down in pt*/
         mask >>= 9; /*Shift mask to "mask" the next level's bits*/
         i++;
     }
